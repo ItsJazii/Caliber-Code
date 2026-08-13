@@ -101,3 +101,21 @@ Smoke test: `curl http://localhost:4870/health` → `{"ok":true,...}`; POST
   (server = duola's Mac over Tailscale, was offline). Chassis-box drive-verdict never run.
 - Fuller machine-side memory lives in Claude Code's memory dir on the laptop:
   `C:\Users\jazii\.claude\projects\E--Game-Developement\memory\`
+
+---
+
+## Session 2026-08-14: repo became CaliCode; fixed duola's red main (PR #40)
+
+- duola **merged PR #1**, then **rewrote the repo → "CaliCode"** (force-pushed main,
+  75 commits): native game-dev coding agent, Rust core + TS/React client, no more
+  opencode fork. Old windows-support work is historical (merged pre-rewrite).
+- His `e4a416a` left main's CI red. Shipped **PR #40** (branch `fix/visual-baselines`,
+  ALL CHECKS GREEN): ① 8 regenerated Linux visual baselines (via his visual-baselines
+  workflow on the fork — workflow_dispatch, artifact download); ② deflaked
+  `loop-gate.spec.ts` (project click double-remounts `<AgentPanel key={slug:revision}>`
+  — wait for `[data-empty-game-hint]` before typing); ③ **real bug fix** in
+  AgentPanel.tsx `runLoop`: only the blocked path persisted the transcript after the
+  loop — completed/capped/stopped loops lost their tail lines on reload (one
+  `persistLoopTranscript()` after the exit branches); ④ hardened visual-baselines.yml
+  (continue-on-error + `if: always()` upload — a flaky spec had discarded all 8 PNGs).
+- Fork main synced to the rewritten upstream. GT-Caliber game remains paused.
