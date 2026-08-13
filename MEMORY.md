@@ -119,3 +119,21 @@ Smoke test: `curl http://localhost:4870/health` → `{"ok":true,...}`; POST
   `persistLoopTranscript()` after the exit branches); ④ hardened visual-baselines.yml
   (continue-on-error + `if: always()` upload — a flaky spec had discarded all 8 PNGs).
 - Fork main synced to the rewritten upstream. GT-Caliber game remains paused.
+
+## Session 2026-08-14 (late night): PR #40 MERGED; desktop app runs on Windows
+
+- **PR #40 merged by duola.** Fork main synced (his newest "quieter tab bar" commit's
+  CI is his to keep green — fork main mirrors him). He's regenerating baselines himself now.
+- **duola's 3 launch priorities (his message):** ① internal skills to one-shot procedural
+  3D assets (→ our Customuse MCP maps directly; jazii volunteered for this), ② one-shot
+  a game that spawns subagents (map/assets/gameplay), ③ play-while-prompting real-time fixes.
+- **CaliCode runs on Windows, both modes:** dev stack (`bash scripts/dev.sh` — core :8765,
+  Vite :5199; needs pnpm, installed globally v11) AND the **Tauri desktop app**
+  (`bash scripts/desktop.sh dev` — native window verified). pnpm 11 gotcha: build scripts
+  blocked by default → client/pnpm-workspace.yaml `allowBuilds: esbuild: true`.
+- **Branch `windows-desktop` on fork (based off fix/visual-baselines pre-merge tip):**
+  ① desktop.sh: ditto→portable copy + sidecar `.exe` suffix (the two Windows blockers);
+  ② GamesSidebar: decorative mac traffic-light dots now browser-only (they rendered next
+  to real Windows controls in the shell); ③ AgentPanel: search box in the model dropdown
+  (user request). tsc clean. **TOMORROW: rebase onto origin/main (check duola's tab-bar
+  commit for conflicts) → PR.** Agent chat needs CALI_OPENAI_API_KEY env for the core.
