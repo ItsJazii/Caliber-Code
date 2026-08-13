@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   ArrowDown,
@@ -1041,6 +1041,16 @@ export function AgentPanel({
     }));
   });
   const activeModelValue = modelList ? `${modelList.active.provider}:${modelList.active.model}` : "";
+  // Filter box state for the model menu — the catalog spans many providers
+  // and scrolling past dozens of rows to reach one model doesn't scale.
+  const [modelQuery, setModelQuery] = useState("");
+  const visibleModelChoices = useMemo(() => {
+    const query = modelQuery.trim().toLowerCase();
+    if (!query) return modelChoices;
+    return modelChoices.filter((choice) =>
+      `${choice.label} ${choice.hint} ${choice.value}`.toLowerCase().includes(query),
+    );
+  }, [modelChoices, modelQuery]);
 
   const selectProvider = (provider: string) => {
     setProviderTarget(provider);
@@ -2965,7 +2975,7 @@ export function AgentPanel({
                 "model · effort" and sizes to its text; each model in the menu
                 opens an effort submenu on hover, so picking an effort picks
                 the model with it. */}
-            <DropdownMenu.Root>
+            <DropdownMenu.Root onOpenChange={(open) => open && setModelQuery("")}>
               <DropdownMenu.Trigger asChild>
                 <button
                   type="button"
@@ -2990,7 +3000,27 @@ export function AgentPanel({
                   collisionPadding={8}
                   className="z-50 max-h-[min(480px,60vh)] min-w-[300px] max-w-[420px] overflow-y-auto rounded-[14px] border border-line bg-popover p-1.5 text-[13px] text-popover-foreground shadow-[0_18px_45px_rgba(0,0,0,0.28)] outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
                 >
-                  {modelChoices.map((choice) => {
+                  {/* Search row: pinned above the list. Key events must not
+                      reach Radix's menu typeahead, which would otherwise
+                      steal every printable character as item navigation. */}
+                  <div className="sticky -top-1.5 z-10 -mx-1.5 -mt-1.5 border-b border-line bg-popover px-3 py-2">
+                    <input
+                      type="text"
+                      value={modelQuery}
+                      autoFocus
+                      placeholder="Search models…"
+                      aria-label="Search models"
+                      onChange={(event) => setModelQuery(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key !== "Escape") event.stopPropagation();
+                      }}
+                      className="w-full bg-transparent text-[12.5px] text-ink-strong placeholder:text-ink-faint focus:outline-none"
+                    />
+                  </div>
+                  {visibleModelChoices.length === 0 ? (
+                    <div className="px-3 py-2 text-[11.5px] text-ink-faint">No models match “{modelQuery}”.</div>
+                  ) : null}
+                  {visibleModelChoices.map((choice) => {
                     const active = choice.value === activeModelValue;
                     const levels = effortLevelsFor(effortIndex, choice.label);
                     const rowBody = (

@@ -50,13 +50,25 @@ echo "==> Building client bundle"
 echo "==> Building core release binary"
 (cd "$ROOT/core" && cargo build --release)
 
-echo "==> Staging core sidecar (cali-core-$TRIPLE)"
+# Windows binaries carry .exe — both the built core and the sidecar Tauri
+# resolves (externalBin appends the platform suffix).
+EXE=""
+case "$TRIPLE" in *windows*) EXE=".exe" ;; esac
+
+echo "==> Staging core sidecar (cali-core-$TRIPLE$EXE)"
 mkdir -p "$SRC_TAURI/binaries"
-cp "$ROOT/core/target/release/cali-core" "$SRC_TAURI/binaries/cali-core-$TRIPLE"
+cp "$ROOT/core/target/release/cali-core$EXE" "$SRC_TAURI/binaries/cali-core-$TRIPLE$EXE"
 
 echo "==> Staging client dist as a bundled resource"
 mkdir -p "$SRC_TAURI/resources"
-/usr/bin/ditto "$ROOT/client/dist" "$SRC_TAURI/resources/dist"
+# ditto is macOS-only; fall back to a plain recursive copy elsewhere.
+if [ -x /usr/bin/ditto ]; then
+  /usr/bin/ditto "$ROOT/client/dist" "$SRC_TAURI/resources/dist"
+else
+  rm -rf "$SRC_TAURI/resources/dist"
+  mkdir -p "$SRC_TAURI/resources/dist"
+  cp -R "$ROOT/client/dist/." "$SRC_TAURI/resources/dist/"
+fi
 
 if [ "$MODE" = "dev" ]; then
   echo "==> tauri dev"

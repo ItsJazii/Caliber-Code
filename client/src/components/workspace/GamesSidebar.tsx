@@ -23,7 +23,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { hasOverlayWindowControls } from "../../lib/desktop";
+import { hasOverlayWindowControls, isDesktopShell } from "../../lib/desktop";
 import type { CoreConnectionState } from "../../lib/rpc";
 import type { Project } from "../../lib/types";
 import { relativeTime, type SessionSummary } from "../../lib/sessions";
@@ -174,6 +174,10 @@ export function GamesSidebar({
 
   // Platform is fixed for the lifetime of the document.
   const overlayControls = useMemo(hasOverlayWindowControls, []);
+  // Decorative dots are browser-only chrome. In the desktop shell the OS
+  // provides window controls (overlaid on macOS, top-right on Windows/Linux)
+  // — fake macOS lights next to real Windows buttons reads as a glitch.
+  const decorativeLights = useMemo(() => !isDesktopShell(), []);
 
   // The parent keeps this value within the resize bounds, but clamping here
   // keeps the rail safe when it is rendered in isolation (or with persisted
@@ -219,7 +223,7 @@ export function GamesSidebar({
             desktopVisible ? "" : "md:invisible md:transition-none"
           }`}
         >
-          {!overlayControls && (
+          {decorativeLights && (
             <div aria-hidden className="mr-1.5 flex gap-2 px-1.5">
               <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
               <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
